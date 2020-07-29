@@ -53,13 +53,11 @@ random.seed(123)
 
 
 
-
+#
 #
 #dataset=maldiData.copy()
 #wantednumbersofrecords=300
 #horizontal_values=[2,25]
-#minpos=2
-#maxpos=25
 #distribution_augmentation={"horizontal":[40],
 #                               "add_noise":[20],
 #                               "linear_line":[20],
@@ -123,6 +121,7 @@ def random_augmentation(dataset,wantednumbersofrecords=300,horizontal_values=[2,
                     alles=np.concatenate((data[Id,0:9],data[Id,(shiftnr+9):],np.zeros(shiftnr))) 
                 
                 alles[0]=nieuweID
+                nieuweID=nieuweID+1
                 # nullen moeten nog gefiltert worden
                 result=np.concatenate((result,alles.reshape(-1,1)),axis=1)
                 # houd meta data bij:
@@ -134,11 +133,12 @@ def random_augmentation(dataset,wantednumbersofrecords=300,horizontal_values=[2,
             if random.randint(0,101)<=distribution_augmentation["add_noise"][0]:
                 # add noise
                 noisevalue=data[Id,9:].std()*0.10
-                alles=data[Id,9:]+np.random.normal(-noisevalue,noisevalue,data.shape[1]-9)
+                alles=np.array([x-random.uniform(-noisevalue,noisevalue) for x in data[Id,9:]])
                 alles[alles<0]=0
                 alles=np.concatenate((data[Id,0:9],alles))
                 
                 alles[0]=nieuweID
+                nieuweID=nieuweID+1
                 # nullen moeten nog gefiltert worden
                 result=np.concatenate((result,alles.reshape(-1,1)),axis=1)
                 
@@ -160,7 +160,7 @@ def random_augmentation(dataset,wantednumbersofrecords=300,horizontal_values=[2,
                 b= data[Id,10]- a * xvalues[10]
                 
                 # random linear
-                nieuwe_b = np.random.normal(0.5*b,1.5*b)
+                nieuwe_b = random.uniform(0.9*b,1.1*b)
                 # x * a + b = y
                 #dataset.columns[10]*nieuwe_a+nieuwe_b=dataset.iloc[Id,10]
                 nieuwe_a= (data[Id,10]-nieuwe_b)/xvalues[10]
@@ -172,15 +172,14 @@ def random_augmentation(dataset,wantednumbersofrecords=300,horizontal_values=[2,
                 if random.randint(0,1)==0:
                     alles=data[Id,9:]-y
                     alles[alles<0]=0
-                    alles=np.concatenate((data[Id,0:9],data[Id,9:]-y))
+                    alles=np.concatenate((data[Id,0:9],alles))
                 else:
                     alles=data[Id,9:]+y
                     alles[alles<0]=0
                     alles=np.concatenate((data[Id,0:9],alles))
                 
-                
-                
                 alles[0]=nieuweID
+                nieuweID=nieuweID+1
                 # nullen moeten nog gefiltert worden
                 result=np.concatenate((result,alles.reshape(-1,1)),axis=1)
                 
@@ -192,8 +191,9 @@ def random_augmentation(dataset,wantednumbersofrecords=300,horizontal_values=[2,
         elif dobbelsteen == 4:
             if random.randint(0,101)<=distribution_augmentation["multiplication"][0]:
                 
-                alles=np.concatenate(data[Id,0:9],data[Id,9:]*random.uniform(0.90,1.10))
+                alles=np.concatenate((data[Id,0:9],data[Id,9:]*random.uniform(0.90,1.10)))
                 alles[0]=nieuweID
+                nieuweID=nieuweID+1
                 # nullen moeten nog gefiltert worden
                 result=np.concatenate((result,alles.reshape(-1,1)),axis=1)
                 # houd meta data bij:
@@ -210,6 +210,7 @@ def random_augmentation(dataset,wantednumbersofrecords=300,horizontal_values=[2,
                 alles=np.concatenate((data[Id,0:9],alles))
                 
                 alles[0]=nieuweID
+                nieuweID=nieuweID+1
                 # nullen moeten nog gefiltert worden
                 result=np.concatenate((result,alles.reshape(-1,1)),axis=1)
                 
@@ -217,13 +218,12 @@ def random_augmentation(dataset,wantednumbersofrecords=300,horizontal_values=[2,
                 meta=pd.concat([meta,pd.DataFrame.from_dict({"old_ID":[str(Id)],"new_ID":[str(nieuweID)],"augmentation":["offset"],"done":["yes"],"time":[datetime.now()]})])
             else:
                 meta=pd.concat([meta,pd.DataFrame.from_dict({"old_ID":[str(Id)],"new_ID":[np.NaN],"augmentation":["offset"],"done":["no"],"time":[datetime.now()]})])
-        nieuweID=nieuweID+1
         
-        result=result.T
-         
-        result=pd.DataFrame.from_records(result.T,columns=dataset.columns)
         
-        result=pd.concat([dataset,result])
+    
+    result=pd.DataFrame.from_records(result.T,columns=dataset.columns)
+        
+    result=pd.concat([dataset,result])
                
         
         
@@ -250,13 +250,18 @@ result,meta=random_augmentation(maldiData,300,horizontal_values=[2,25],
 
 stop = timeit.default_timer()
 end=datetime.now()
-print('Time: ', stop - start)          
+print('Time: ', stop - start)
+
+
+
+
+          
 #  891
 
 
 end-st
 
-
+plt.plot(xvalues,alles)
 
 
 
